@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+</head>
+<body>
+<div>http://localhost:8080/admin/dashboard</div>
+<div><b th:text="${ms}"></b></div>
+<!-- Delivery Status Graph -->
+<div id="divBody">
+    <!--The fetch data is here-->
+</div>
+<div>
+<span> Delivery Status</span>
+<div id="myChart" style="max-width:700px; height:400px"></div>
+</div>
+<hr>
+<hr>
+<!-- Available book category -->
+<div id="divBodyForBookCategroy">
+  <!--The fetch data is here-->
+</div>
+<span> Book Category</span>
+<div id="bookChart" style="max-width:700px; height:400px"></div>
+</div>
+<hr>
+<hr>
+<!-- Books sells per day -->
+<div id="divBodyBookSellsPerDay">
+  <!--The fetch data is here-->
+</div>
+<span> Books sells per day</span>
+<div id="bookSellsChart" style="max-width:700px; height:400px"></div>
+</div>
+<hr>
+<hr>
+<!-- Books sells by  per day -->
+<div id="divBodyBookSellsByCategoryPerDay">
+  <!--The fetch data is here-->
+</div>
+<span> Books sells by Category per day</span>
+<div id="bookSellsByCategoryChart" style="max-width:700px; height:400px"></div>
+</div>
+
+<script>
+
+  const url = 'http://localhost:8080/admin/';
+  const statusCounts = {
+      delivered: 0,
+      shipped: 0,
+      processing: 0
+    };
+  const BookCategoryStatusCounts = {
+      coding: 0,
+      programing: 0,
+      science: 0,
+      envirment: 0
+    };
+fetch(url)
+  .then((response) => {
+    return response.json();
+  })
+  .then((data) => {
+    const dataAPI = document.getElementById('divBody');
+    const divBodyForBookCategroy = document.getElementById('divBodyForBookCategroy');
+
+    // Assuming data is an array of orders
+    data.forEach(order => {
+      const status = order.status.toLowerCase(); // Convert to lowercase for consistency
+      if (statusCounts.hasOwnProperty(status)) {
+        statusCounts[status]++;
+      }
+      const statusCategory = order.book.category.toLowerCase();
+      if (BookCategoryStatusCounts.hasOwnProperty(statusCategory)) {
+        BookCategoryStatusCounts[statusCategory]++;
+      }
+
+      const orderHTML = `
+        <div>Order ID: ${order.id}</div>
+        <div>Status: ${order.status}</div>
+        <div>Date: ${order.date ? order.date : 'N/A'}</div>
+        <div>Quantity: ${order.quantity}</div>
+        <div>Total: ${order.total}</div>
+        <div>
+          <strong>Book Details:</strong>
+          <div>Title: ${order.book.title}</div>
+          <div>Author: ${order.book.author}</div>
+          <div>Price: ${order.book.price}</div>
+          <div>Category: ${order.book.category}</div>
+        </div>
+        <div>
+          <strong>User Details:</strong>
+          <div>Username: ${order.user.username}</div>
+          <div>Email: ${order.user.email}</div>
+          <div>Address: ${order.user.address}</div>
+        </div>
+        <hr>
+      `;
+
+      dataAPI.innerHTML += orderHTML;
+    });
+     // Display the status counts
+     const statusHTML = `
+      <div><strong>Status Counts:</strong></div>
+      <div>Delivered: ${statusCounts.delivered}</div>
+      <div>Shipped: ${statusCounts.shipped}</div>
+      <div>Processing: ${statusCounts.processing}</div>
+    `;
+    dataAPI.innerHTML += statusHTML;
+
+      // Now that we have the statusCounts, draw the chart
+      drawChart();
+  // Display the status counts
+  const BookCategory = `
+      <div><strong>Book Category Counts:</strong></div>
+      <div>Coding: ${BookCategoryStatusCounts.coding}</div>
+      <div>Programing: ${BookCategoryStatusCounts.programing}</div>
+      <div>Science: ${BookCategoryStatusCounts.science}</div>
+      <div>Envirment: ${BookCategoryStatusCounts.envirment}</div>
+    `;
+    divBodyForBookCategroy.innerHTML += BookCategory;
+    drawChartForBookCategory(); 
+    drawLineChartPerDayBookSells();
+    drawLineChartPerDayBookSellsByCategory();
+
+  })
+  .catch((error) => {
+    console.error('Error fetching data:', error);
+  });
+
+</script>
+<script src="https://www.gstatic.com/charts/loader.js"></script>
+<script >
+
+    //   Delivery Status Graph 
+// charts
+google.charts.load('current',{packages:['corechart']});
+    google.charts.setOnLoadCallback(drawChart);
+//     // Your Function
+    function drawChart() {
+const data = google.visualization.arrayToDataTable([
+  ['Status', 'Counts'],
+  ['Delivered', statusCounts.delivered],
+  ['Shipped', statusCounts.shipped],
+  ['Processing', statusCounts.processing]
+  // ['USA', 24],
+  // ['Argentina', 15]
+]);
+//Set Options
+const options = {
+  title: 'Status on Order',
+  is3D: true
+};
+ // Draw
+const chart = new google.visualization.PieChart(document.getElementById('myChart'));
+chart.draw(data, options);
+}
+//   Delivery Status Graph End 
+
+
+   //   Available book category Graph 
+// charts
+google.charts.load('current',{packages:['corechart']});
+    google.charts.setOnLoadCallback(drawChart);
+
+   // Your Function
+    function drawChartForBookCategory() {
+const BookCategorydata = google.visualization.arrayToDataTable([
+  ['Book_Category', 'Counts'],
+  ['Coding', BookCategoryStatusCounts.coding],
+  ['Science', BookCategoryStatusCounts.science],
+  ['Envirment', BookCategoryStatusCounts.envirment],
+  ['programing', BookCategoryStatusCounts.programing],
+  // ['USA', 24],
+  // ['Argentina', 15]
+]);
+
+//Set Options
+const bookOptions = {
+  title: 'Book Category',
+  is3D: true
+};
+ // Draw
+const bookChart = new google.visualization.PieChart(document.getElementById('bookChart'));
+bookChart.draw(BookCategorydata, bookOptions);
+}
+
+//   Available book category Graph End 
+
+//books sells per day line graph
+google.charts.load('current',{packages:['corechart']});
+google.charts.setOnLoadCallback(drawChart);
+
+function drawLineChartPerDayBookSells() {
+// Set Data
+const data1 = google.visualization.arrayToDataTable([
+  ['Days', 'Orders'],
+  [1,5],[2,8],[3,7],[4,4],[5,5],
+  [6,0],[7,1],[8,2],
+  [9,1],[10,4],[11,4]
+]);
+// Set Options
+const options1 = {
+  title: 'Books Order vs. Days',
+  hAxis: {title: 'Days'},
+  vAxis: {title: 'Books Order'},
+  legend: 'none',
+  
+};
+// Draw
+const charts1 = new google.visualization.LineChart(document.getElementById('bookSellsChart'));
+charts1.draw(data1, options1);
+
+}
+//books sells per day line graph END
+
+
+//books sells per day by category line graph
+google.charts.load('current',{packages:['corechart']});
+google.charts.setOnLoadCallback(drawChart);
+
+function drawLineChartPerDayBookSellsByCategory() {
+// Set Data
+const data12 = google.visualization.arrayToDataTable([
+  ['Days', 'Coding','Programing', 'Science','Technologies'],
+  [1,5,2,4,8],[2,8,4,4,1],[3,7,8,1,5],[4,4,4,2,3],[5,8,2,1,1],
+  [6,0,4,5,0],[7,1,7,1,5],[8,2,4,8,2],
+  [9,1,4,4,8],[10,4,5,1,4],[11,4,4,5,2]
+]);
+// Set Options
+const options12 = {
+  title: 'Books Order vs. Days',
+  hAxis: {title: 'Days'},
+  vAxis: {title: 'Books Order by Category'},
+  legend: { position: 'top' },
+  isStacked: true
+};
+// Draw
+const charts12 = new google.visualization.BarChart(document.getElementById('bookSellsByCategoryChart'));
+charts12.draw(data12, options12);
+
+}
+//books sells per day by category line graph END
+
+</script>
+</body>
+</html>

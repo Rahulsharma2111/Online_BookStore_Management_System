@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+  <div><b th:text="${ms}"></b></div>
+<div id="divBody">
+    <!--The fetch data is here-->
+</div>
+<div id="myChart" style="max-width:700px; height:400px"></div>
+
+<script>
+  const url = 'http://localhost:8080/admin/';
+  const statusCounts = {
+      delivered: 0,
+      shipped: 0,
+      processing: 0
+    };
+fetch(url)
+  .then((response) => {
+    return response.json();
+  })
+  .then((data) => {
+    const dataAPI = document.getElementById('divBody');
+    
+    // Assuming data is an array of orders
+    data.forEach(order => {
+      const status = order.status.toLowerCase(); // Convert to lowercase for consistency
+      if (statusCounts.hasOwnProperty(status)) {
+        statusCounts[status]++;
+      }
+
+      const orderHTML = `
+        <div>Order ID: ${order.id}</div>
+        <div>Status: ${order.status}</div>
+        <div>Date: ${order.date ? order.date : 'N/A'}</div>
+        <div>Quantity: ${order.quantity}</div>
+        <div>Total: ${order.total}</div>
+        <div>
+          <strong>Book Details:</strong>
+          <div>Title: ${order.book.title}</div>
+          <div>Author: ${order.book.author}</div>
+          <div>Price: ${order.book.price}</div>
+          <div>Category: ${order.book.category}</div>
+        </div>
+        <div>
+          <strong>User Details:</strong>
+          <div>Username: ${order.user.username}</div>
+          <div>Email: ${order.user.email}</div>
+          <div>Address: ${order.user.address}</div>
+        </div>
+        <hr>
+      `;
+      
+      dataAPI.innerHTML += orderHTML;
+    });
+     // Display the status counts
+     const statusHTML = `
+      <div><strong>Status Counts:</strong></div>
+      <div>Delivered: ${statusCounts.delivered}</div>
+      <div>Shipped: ${statusCounts.shipped}</div>
+      <div>Processing: ${statusCounts.processing}</div>
+    `;
+    dataAPI.innerHTML += statusHTML;
+
+      // Now that we have the statusCounts, draw the chart
+      drawChart();
+  })
+  .catch((error) => {
+    console.error('Error fetching data:', error);
+  });
+
+
+</script>
+<script src="https://www.gstatic.com/charts/loader.js"></script>
+<script >
+// charts
+google.charts.load('current',{packages:['corechart']});
+    // google.charts.setOnLoadCallback(drawChart);
+ 
+    
+//     // Your Function
+    function drawChart() {
+const data = google.visualization.arrayToDataTable([
+  ['Status', 'Counts'],
+  ['Delivered', statusCounts.delivered],
+  ['Shipped', statusCounts.shipped],
+  ['Processing', statusCounts.processing]
+  // ['USA', 24],
+  // ['Argentina', 15]
+]);
+
+//Set Options
+const options = {
+  title: 'Status on Order',
+  is3D: true
+};
+ // Draw
+const chart = new google.visualization.PieChart(document.getElementById('myChart'));
+chart.draw(data, options);
+}
+ 
+
+</script>
+</body>
+</html>

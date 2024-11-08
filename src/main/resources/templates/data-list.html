@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- <link rel="stylesheet" href="styles.css"> -->
+    <title>Order Table</title>
+</head>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: auto;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+}
+
+thead {
+    background-color: #007bff;
+    color: white;
+}
+
+th, td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+tbody tr:hover {
+    background-color: #f1f1f1;
+}
+
+td {
+    color: #333;
+}
+
+button {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 0 5px;
+}
+
+.update-btn {
+    background-color: #28a745; /* Green */
+    color: white;
+}
+
+.delete-btn {
+    background-color: #dc3545; /* Red */
+    color: white;
+}
+
+.update-btn:hover {
+    background-color: #218838;
+}
+
+.delete-btn:hover {
+    background-color: #c82333;
+}
+
+@media (max-width: 768px) {
+    table, thead, tbody, th, td, tr {
+        display: block;
+    }
+
+    thead tr {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+    }
+
+    tr {
+        margin-bottom: 15px;
+    }
+
+    td {
+        text-align: right;
+        position: relative;
+        padding-left: 50%;
+    }
+
+    td::before {
+        position: absolute;
+        left: 0;
+        width: 50%;
+        padding-left: 10px;
+        white-space: nowrap;
+        font-weight: bold;
+        text-align: left;
+    }
+
+    td:nth-of-type(1)::before { content: "Order ID"; }
+    td:nth-of-type(2)::before { content: "User  "; }
+        td:nth-of-type(3)::before { content: "Book"; }
+    td:nth-of-type(4)::before { content: "Date"; }
+    td:nth-of-type(5)::before { content: "Quantity"; }
+    td:nth-of-type(6)::before { content: "Total"; }
+    td:nth-of-type(7)::before { content: "Status"; }
+    td:nth-of-type(8)::before { content: "Actions"; } /* Added Actions for responsive */
+}
+</style>
+<body>
+    <div class="container">
+        <h1>Order List</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>User</th>
+                    <th>Book</th>
+                    <th>Date</th>
+                    <th>Quantity</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Actions</th> <!-- New Actions Header -->
+                </tr>
+            </thead>
+            <tbody id="orderTableBody" th:each="order : ${orders}">
+                <!-- Sample Data -->
+                <tr>
+                    <td th:text="${order.id}"></td>
+                    <td th:text="${order.user.username}"></td> <!-- Assuming User entity has a username -->
+                    <td th:text="${order.book.title}"></td>    <!-- Assuming Book entity has a title -->
+                   <!-- <td th:text="${#dates.format(order.date, 'yyyy-MM-dd HH:mm')}"></td> -->
+                   <td th:text="${order.date}"></td>
+                    <td th:text="${order.quantity}"></td>
+                    <td th:text="${order.total}"></td>
+                    <td th:text="${order.status}"></td>
+                    <td>
+                        <!-- <button class="update-btn" th:text="${order.id}">Update</button>
+                        <button class="delete-btn" th:text="${order.id}">Delete</button> -->
+                        <!-- <button class="update-btn" >Update</button>
+                        <button class="delete-btn" >Delete</button> -->
+                    </td>
+                </tr>
+                <!-- <tr>
+                    <td>002</td>
+                    <td>JaneDoe</td>
+                    <td>1984</td>
+                    <td>2023-10-02 14:30</td>
+                    <td>1</td>
+                    <td>$15.00</td>
+                    <td>Pending</td>
+                    <td>
+                        <button class="update-btn">Update</button>
+                        <button class="delete-btn">Delete</button>
+                    </td>
+                </tr> -->
+                <!-- More rows can be dynamically generated here -->
+            </tbody>
+        </table>
+    </div>
+    <script>
+document.addEventListener('DOMContentLoaded', () => {
+    const orderTableBody = document.getElementById('orderTableBody');
+
+    // Add event listeners for buttons
+    orderTableBody.addEventListener('click', function(event) {
+        if (event.target.classList.contains('update-btn')) {
+            const row = event.target.closest('tr');
+            const orderId = row.cells[0].innerText; // Get Order ID
+            alert(`Update Order ID: ${orderId}`);
+            // Here you can add logic to open an update form or modal
+        }
+
+        if (event.target.classList.contains('delete-btn')) {
+            const row = event.target.closest('tr');
+            const orderId = row.cells[0].innerText; // Get Order ID
+            const confirmation = confirm(`Are you sure you want to delete Order ID: ${orderId}?`);
+            if (confirmation) {
+                // Here you can add logic to delete the order from the database
+                row.remove(); // For demonstration, remove the row from the table
+                alert(`Order ID: ${orderId} deleted.`);
+            }
+        }
+    });
+});
+</script>
+</body>
+</html>
